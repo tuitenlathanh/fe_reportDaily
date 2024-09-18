@@ -6,9 +6,10 @@ const InputFloat= () => {
   const handleKeyDown = (event) => {
     if (event.key === 'e' || event.key === 'E' || event.key === "-" || event.key === "+") {
       event.preventDefault();
-    }
-  };
+      console.log(event);
+     }
 
+  };
   return (
     <input
     type="number" min={0.1}  

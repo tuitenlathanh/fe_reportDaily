@@ -7,6 +7,7 @@ const InputNumber = () => {
     if (event.key === 'e' || event.key === 'E'|| event.key === '.' || event.key === "-" || event.key === "+") {
       event.preventDefault();
     }
+    console.log(event);
   };
 
   return (

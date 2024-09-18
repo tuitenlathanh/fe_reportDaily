@@ -9,7 +9,7 @@ export  async function GET() {
         { UserCode: 'SC242', Name: 'Lê Hùng Cường' },
         { UserCode: 'SC205', Name: 'Huỳnh Thị Kim Phượng' },
 
-      ],
+      ],  
       workGroups: [
         { Id: 1, GroupFullname: 'FILM & FUJI' },
         { Id: 2, GroupFullname: 'BARA' },
