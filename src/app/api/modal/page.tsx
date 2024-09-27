@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect, } from "react";
-import ShowToast from "./component/toastNotifications";
-import MyComponent from "./component/intput3";
-
+import { useState, useEffect, use } from "react";
+import ShowToast from "../../component/toastNotifications";
+import MyComponent from "@/app/component/intput3";
 
 type WorkGroup = {
   Id: number;
@@ -35,20 +34,22 @@ type Report = {
 export default function Home() {
   //toast
   const [toasts, setToasts] = useState({ message: "", type: "", show: false });
+  const [inputHour, setInputHour] = useState<number>();
+  const [inputMinute, setInputMinute] = useState<number>();
+  const [totalTime, setTotalTime] = useState<number>();
+  const [remainingTime, setRemainingTime] = useState<number>(totalTime);
+
+
+
+
   const [workGroups, setWorkGroups] = useState<WorkGroup[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
-
-  const [inputHour, setInputHour] = useState<number>(0);
-  const [inputMinute, setInputMinute] = useState<number>(0);
-  const [totalTime, setTotalTime] = useState<number>();
-  const [remainingTime, setRemainingTime] = useState(totalTime);
-  const [remainingTotalTime, setRemainingTotalTime] = useState(0);
 
   const [times, setTimes] = useState<Time[]>([]);
 
   const [reports, setReports] = useState<Report[]>([]);
 
-  const [selectWorkForWorkdID, setSelectWorkForWorkdID] = useState<Work[]>(works);
+  const [selectWorkForWorkdID, setSelectWorkForWorkdID] = useState<Work[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
 
   const [selectedTimeId, setSelectedTimeId] = useState<string>("");
@@ -77,23 +78,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const totalInputInMinutes = (inputHour * 60) + inputMinute;
-    if (totalTime && totalInputInMinutes <= totalTime) {
-      const newRemainingTime = totalTime - totalInputInMinutes;
-      setRemainingTime(newRemainingTime);
-      setRemainingTotalTime(newRemainingTime); 
-    } 
-    else if( Number (totalTime) < totalInputInMinutes) {
-      setInputHour(0);
-      setInputMinute(0);
-    }
-   
-
-
-  }, [totalTime, inputHour, inputMinute]);
-  
-
   const handleShowToast = (
     message: string,
     types: "success" | "error" | "warning"
@@ -103,10 +87,20 @@ export default function Home() {
       setToasts({ ...toasts, show: false });
     }, 2500);
   };
+
+  const handleChange = () => {
+    if(selectedGroupId != "" ) {
+      console.log("xxxxxx");
+    }
+  };
+  // onChange={handleGroupChange}
+  // value={selectedGroupId}
+
   const handleGroupChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const groupId = event.target.value;
     setSelectedGroupId(groupId);
     filterWorkByID(groupId);
+    handleChange();
   };
 
   const filterWorkByID = (GroupID: string) => {
@@ -151,22 +145,10 @@ export default function Home() {
       setReports((prevReports) => {
         const updatedReports = [...prevReports, newReport];
         console.log('Báo cáo mới đã thêm:', newReport); 
-        console.log('Danh sách báo cáo:'); 
-
-        console.log(reports.map((report) => ({
-          user: UserName,
-          time: `${inputHour} giờ (${inputMinute} phút)`,
-          quantity: inputQuantity,
-          hours: inputHour,
-          minutes: inputMinute,
-          group: selectedWorkGroup.GroupFullname,
-          work: selectedWork.WorkName,
-          note: inputNote,
-        })));
-        resetForm();
         return updatedReports;
       });
       
+      resetForm(); 
     } else {
       handleShowToast("Vui lòng chọn đầy đủ thông tin trước khi thêm công việc!", "warning");
     }
@@ -174,13 +156,13 @@ export default function Home() {
   
 
   const resetForm = () => {
+    // setSelectedUserCode("");
     setSelectedGroupId("");
-    setSelectWorkForWorkdID();
+    setSelectedTimeId("");
     setInputHour(0);
     setInputMinute(0);
     setInputQuantity(0);
     setInputNote("");
-    setIsModalOpen(false);  
   };
   const handleTimeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const timeId = event.target.value;
@@ -188,42 +170,63 @@ export default function Home() {
     const selectTime = times.find((time) => time.Id === parseInt(timeId));
     if (selectTime) {
       setTotalTime(selectTime.hour * 60);
-     console.log(remainingTime);
+
     } else {
       setTotalTime(0);
     }
   };
-
+  const mockReports = [
+    {
+      user: "Thành",
+      time: "2 giờ (30 phút)",
+      quantity: 10,
+      hours: 2,
+      minutes: 30,
+      group: "Group A",
+      work: "Work X",
+      note: "Tâm phải vững",
+    },
+    {
+      user: "Thành",
+      time: "2 giờ (30 phút)",
+      quantity: 10,
+      hours: 2,
+      minutes: 30,
+      group: "CAMERA - ALBUM PRO - CAMERA",
+      work: "BU PRO",
+      note: "Tâm phải vững",
+    },
+    {
+      user: "Thành",
+      time: "2 giờ (30 phút)",
+      quantity: 10,
+      hours: 2,
+      minutes: 30,
+      group: "FILM & FUJI",
+      work: "MA & FT & PF (STANDARD) FUJI",
+      note: "Trong khu vườn nhỏ, những bông hoa đua nhau khoe sắc. Tiếng chim hót líu lo, gió nhẹ nhàng thổi qua, mang theo hương thơm của cỏ cây. Mặt trời chiếu sáng, tạo nên một bức tranh thiên nhiên tuyệt đẹp. Cuộc sống thật yên bình và tươi đẹp",
+    },
+  ];
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>,inputNumber: number ) => {
     const newInput = Number(event.target.value);
+ 
     if (inputNumber === 1) {
       setInputHour(newInput);
-    } else if(inputNumber === 2 ) {
+    } else {
       setInputMinute(newInput);
     }
-
+    const totalInput = (inputHour * 60) + (inputMinute);
+    
+    console.log("tổng phút đã nhập" + totalInput);
+    const newRemainingTime = totalTime - totalInput;
+    setRemainingTime(newRemainingTime);
+    console.log("totalTime: " + totalTime);
+    console.log("input Hour: "+ inputHour);
+    console.log("input minutes"+ inputMinute);
+    console.log("totalTime sau khi set"+ setRemainingTime(newRemainingTime));
   };
-  const handleInputQuantity = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(event.target.value);
-    console.log("input số lượng: "+ newValue);
-    if (newValue >= 0) {
-      setInputQuantity(newValue);
-    } 
-
-  };
-  const maxLenght = 256;
-  const warningText = 10;
-  const remainingText = maxLenght -  inputNote.length;
-  const remainingBar= (inputNote.length / maxLenght) * 100;
-   const handleInputNote = (event: React.ChangeEvent<HTMLTextAreaElement>) =>{
-    const inputValue = event.target.value;
-    if(inputValue.length <= maxLenght) {
-      setInputNote(inputValue);
-    }
-   }
-
-
+ 
 
   return (
     <div className="flex justify-center align-center bg-[url('./bg.png')] h-screen">
@@ -293,7 +296,7 @@ export default function Home() {
         </div>
         <div
           className={`rounded-lg border border-gray-400 border-solid border-1 w-full  bg-white col-span-1 pl-6 pr-6 pt-4 h-3/4${
-            !isConfirmed ? " bg-gray-700 text-black " : ""
+            !isConfirmed ? " bg-gray-500 text-black " : ""
           }`}
         >
           <div className="flex justify-between">
@@ -309,67 +312,29 @@ export default function Home() {
                 <path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path>
               </svg>
               <label className="ml-1 text-xl leading-7 font-semibold text-[#3cbbc2]">
-                {Number.isNaN(remainingTime) ? totalTime : remainingTime} Phút
+                {totalTime} Phút
               </label>
             </div>
           </div>
           <div
             className={`${
-              !isConfirmed || remainingTime === 0? " text-black cursor-not-allowed" : ""
+              !isConfirmed ? "bg-gray-500 text-black cursor-not-allowed" : ""
             }`}
           >
             <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(true)}
                 type="button"
-                className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 
-                  ${
-                  !isConfirmed || remainingTime === 0  ? "opacity-50 cursor-not-allowed" : ""
+                className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 ${
+                  !isConfirmed ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                disabled={remainingTime == 0}
-              >
-                <label className="text-2xl font-semibold text-white cursor-pointer">
-                  +
-                </label>
-              </button>
-            </div>
-
-            {/* {remainingTime == 0 &&  (
-            <div
-              className={`mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white mb-4${
-                !isConfirmed ? " bg-gray-300" : ""
-              }`}
-            >
-              <button
-                className="bg-green-800 text-white hover:bg-green-600 rounded-lg p-1 h-10 w-full"
                 disabled={!isConfirmed}
               >
-                Gửi báo cáo
-              </button>
-            </div>
-          )} */}
-
-          {/* <div
-            className={`${remainingTime === 0 ? "text-black cursor-not-allowed" : ""}`}
-          >
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                type="button"
-                className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 ${
-                  remainingTime === 0 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={remainingTime === 0}
-              >
                 <label className="text-2xl font-semibold text-white cursor-pointer">
                   +
                 </label>
               </button>
             </div>
-          </div> */}
-
-
-            
           </div>
 
           <div className="scroll h-80 overflow-y-auto">
@@ -443,10 +408,7 @@ export default function Home() {
                         <path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path>
                       </svg>
                       <label className="ml-1 text-xl leading-7 font-semibold text-[#3cbbc2]">
-                        {Number.isNaN(remainingTime)
-                          ? totalTime
-                          : remainingTime}{" "}
-                        Phút
+                        {totalTime} Phút
                       </label>
                     </div>
                   </div>
@@ -457,8 +419,8 @@ export default function Home() {
                         <label className="block mb-2 text-xl leading-5 font-semibold text-[#212529]">
                           Chọn bộ phận
                         </label>
-                        <select
-                          className="w-full px-3 py-2 rounded-lg border focus:ring focus:border-blue-300 focus:outline-none"
+                        <select 
+                          className="w-full px-3 py-2 rounded-lg border focus:ring focus:border-blue-300 focus:outline-none disable"
                           tabIndex={0}
                           autoFocus
                           onChange={handleGroupChange}
@@ -495,14 +457,15 @@ export default function Home() {
                     <div className="grid">
                       <div className="grid gap-6 mb-4 md:grid-cols-4 w-full">
                         <div className="flex items-center border border-gray-300 rounded-md">
-                          <span className="inline-flex items-center p-2 px-2 text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md">
+                          <span className="inline-flex items-center p-2 px-4 text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md">
                             Giờ
                           </span>
                           <input
                             type="number"
                             min={0}
                             step={1}
-                            value={inputHour}
+                            max={12}
+                            // value={inputHour}
                             onChange={(event) => handleInputChange(event, 1)}
                             className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring focus:border-blue-300"
                           />
@@ -516,7 +479,7 @@ export default function Home() {
                             type="number"
                             min={0}
                             step={1}
-                            max={59}
+                            max={60}
                             value={inputMinute}
                             onChange={(event) => handleInputChange(event, 2)}
                             className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring focus:border-blue-300"
@@ -528,10 +491,6 @@ export default function Home() {
                           </span>
                           <input
                             type="number"
-                            min={0}
-                            step={1}
-                            value={inputQuantity}
-                            onChange={(event) => handleInputQuantity(event)}
                             className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring focus:border-blue-300"
                           />
                         </div>
@@ -542,40 +501,18 @@ export default function Home() {
                         </label>
                         <textarea
                           className="w-full px-3 py-2 border rounded-lg focus:ring focus:border-blue-300 focus:outline-none"
-                          rows={4}
-                          value={inputNote}
-                          onChange={handleInputNote}
+                          rows={2}
                           placeholder="Nhập ghi chú"
                         ></textarea>
-                        <div className="w-full h-2 shadow-inherit border border-lg rounded-lg bg-slate-300">
-                          <div
-                            className="h-full bg-green-800 rounded-lg"
-                            style={{ width: `${remainingBar}%` }}
-                          ></div>
-                          <p
-                            className={`text-sm mt-2 font-semibold ${
-                              remainingText <= warningText ? "text-red-800" : ""
-                            }`}
-                          >
-                            Còn {remainingText} ký tự
-                          </p>
-                        </div>
                       </div>
-                      <div
-                        className={`w-full flex justify-end align-end mb-4${
-                          !isConfirmed ? " bg-gray-300" : ""
-                        }`}
-                      >
-                        {Number(remainingTime) >= 0 && (
-                          <button
-                            onClick={handleAddWork}
-                            className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg p-1 pr-4 pl-4 mt-6 "
-                          >
-                            Thêm công việc
-                          </button>
-                        )}
+
+                      <div className="w-full flex justify-end align-end">
+                        <button 
+                        onClick={handleAddWork}
+                        className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg p-1 pr-4 pl-4 mt-3">
+                          Thêm công việc
+                        </button>
                       </div>
-                    
                     </div>
                   </div>
                 </div>
@@ -583,22 +520,8 @@ export default function Home() {
             </div>
           )}
         </div>
-          {/* {remainingTime == 0 && (
-            <div
-              className={`mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white mb-4${
-                !isConfirmed ? " bg-gray-300" : ""
-              }`}
-            >
-              <button
-                className="bg-green-800 text-white hover:bg-green-600 rounded-lg p-1 h-10 w-full"
-                disabled={!isConfirmed}
-              >
-                Gửi báo cáo
-              </button>
-            </div>
-          )} */}
         <div
-          className={` mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white  ${
+          className={` mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white  mb-4${
             !isConfirmed ? " bg-gray-300" : ""
           }`}
         >
@@ -609,9 +532,22 @@ export default function Home() {
             Gửi báo cáo
           </button>
         </div>
-
         <div>
           <div>
+            <button
+              onClick={() =>
+                handleShowToast("Thêm công việc thành công!", "success")
+              }
+            >
+              Show Success Toast
+            </button>
+            <button onClick={() => handleShowToast("Có lỗi xảy ra!", "error")}>
+              Show Error Toast
+            </button>
+            <button onClick={() => handleShowToast("Cảnh báo!", "warning")}>
+              Show Warning Toast
+            </button>
+
             {toasts.show && (
               <ShowToast
                 message={toasts.message}
@@ -622,6 +558,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+        {/* <MyComponent /> */}
     </div>
   );
 }
