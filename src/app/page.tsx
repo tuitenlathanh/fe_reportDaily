@@ -1,13 +1,19 @@
 "use client";
 import { useState, useEffect, } from "react";
-import ShowToast from "./component/toastNotifications";
-import MyComponent from "./component/intput3";
-
+import ShowToast from "./component/toastComponent";
+import UserComponent from "./component/userComponent";
+import ModalWarning from "./component/modalWarningComponent"
 
 type WorkGroup = {
   Id: number;
   GroupFullname: string;
 };
+type User = {
+  Id: number;
+  UserCode: string;
+  UserName: string;
+
+}
 
 type Work = {
   WorkGroup: number;
@@ -26,77 +32,94 @@ type Report = {
   time: string;
   quantity: number;
   hours: number;
-  minutes: number;
+  minutes: number;  
   group: string;
   work: string;
   note: string;
 };
 
 export default function Home() {
-  //toast
   const [toasts, setToasts] = useState({ message: "", type: "", show: false });
+
   const [workGroups, setWorkGroups] = useState<WorkGroup[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
-
   const [inputHour, setInputHour] = useState<number>(0);
   const [inputMinute, setInputMinute] = useState<number>(0);
   const [totalTime, setTotalTime] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(totalTime);
   const [remainingTotalTime, setRemainingTotalTime] = useState(0);
-
   const [times, setTimes] = useState<Time[]>([]);
-
   const [reports, setReports] = useState<Report[]>([]);
-
   const [selectWorkForWorkdID, setSelectWorkForWorkdID] = useState<Work[]>(works);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
-
   const [selectedTimeId, setSelectedTimeId] = useState<string>("");
-
   const [isConfirmed, setIsConfirmed] = useState(false);
-
-
-
   const [inputQuantity, setInputQuantity] = useState<number>(0);
-
   const [inputNote, setInputNote] = useState<string>("");
   const UserName = "SC460 - ĐINH TRỌNG THÀNH";
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [showModal, setShowModal] =useState(true);
+  const [showMessage, setShowMessage] = useState("");
+  const code = "SC4601";
+
+  const maxLenght = 256;
+  const warningText = 10;
+  const remainingText = maxLenght -  inputNote.length;
+  const remainingBar= (inputNote.length / maxLenght) * 100;
+  
   useEffect(() => {
     async function fetchData() {
       const response = await fetch("/api/mockData");
       const data = await response.json();
-      // setUsers(data.users);
       setWorkGroups(data.workGroups);
       setWorks(data.works);
       setTimes(data.workTime);
+      console.log(data);
     }
-
-    console.log("Render");
     fetchData();
   }, []);
 
+  const handleIsUser = (isFound: boolean) => {
+    if(isFound) {
+      console.log("ĐÚng");
+    } else {
+      setShowModal(true);
+      setShowMessage('Vui lòng gửi báo cáo tại công ty.')
+      console.log("Sai");
+    }
+
+  }
+  const handlerClose = () =>{
+    setShowModal(false);
+  }
+ 
+
+ 
+
   useEffect(() => {
+    calculatorRemainingTime();
+  }, [totalTime, inputHour, inputMinute]);
+  
+  const calculatorRemainingTime = () => {
     const totalInputInMinutes = (inputHour * 60) + inputMinute;
     if (totalTime && totalInputInMinutes <= totalTime) {
       const newRemainingTime = totalTime - totalInputInMinutes;
       setRemainingTime(newRemainingTime);
-      setRemainingTotalTime(newRemainingTime); 
-    } 
-    else if( Number (totalTime) < totalInputInMinutes) {
+      setRemainingTotalTime(newRemainingTime);
+    } else if (Number(totalTime) < totalInputInMinutes) {
       setInputHour(0);
       setInputMinute(0);
     }
-   
+    console.log("tính toán toán" + totalTime)
+  };
+ 
 
-
-  }, [totalTime, inputHour, inputMinute]);
-  
 
   const handleShowToast = (
     message: string,
-    types: "success" | "error" | "warning"
+    types: String, show: boolean
   ) => {
     setToasts({ show: true, message, types });
     setTimeout(() => {
@@ -175,13 +198,12 @@ export default function Home() {
 
   const resetForm = () => {
     setSelectedGroupId("");
-    setSelectWorkForWorkdID();
-    setInputHour(0);
-    setInputMinute(0);
     setInputQuantity(0);
     setInputNote("");
     setIsModalOpen(false);  
+    calculatorRemainingTime();
   };
+
   const handleTimeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const timeId = event.target.value;
     setSelectedTimeId(timeId);
@@ -192,8 +214,8 @@ export default function Home() {
     } else {
       setTotalTime(0);
     }
+    
   };
-
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>,inputNumber: number ) => {
     const newInput = Number(event.target.value);
@@ -212,17 +234,13 @@ export default function Home() {
     } 
 
   };
-  const maxLenght = 256;
-  const warningText = 10;
-  const remainingText = maxLenght -  inputNote.length;
-  const remainingBar= (inputNote.length / maxLenght) * 100;
+ 
    const handleInputNote = (event: React.ChangeEvent<HTMLTextAreaElement>) =>{
     const inputValue = event.target.value;
     if(inputValue.length <= maxLenght) {
       setInputNote(inputValue);
     }
    }
-
 
 
   return (
@@ -251,7 +269,7 @@ export default function Home() {
                 </svg>
               </div>
               <label className="ml-2 w-full text font-semibold text-[#212529]">
-                {UserName}
+                <UserComponent code={code} isUser = {handleIsUser}/>
               </label>
             </div>
           </div>
@@ -333,43 +351,6 @@ export default function Home() {
                 </label>
               </button>
             </div>
-
-            {/* {remainingTime == 0 &&  (
-            <div
-              className={`mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white mb-4${
-                !isConfirmed ? " bg-gray-300" : ""
-              }`}
-            >
-              <button
-                className="bg-green-800 text-white hover:bg-green-600 rounded-lg p-1 h-10 w-full"
-                disabled={!isConfirmed}
-              >
-                Gửi báo cáo
-              </button>
-            </div>
-          )} */}
-
-          {/* <div
-            className={`${remainingTime === 0 ? "text-black cursor-not-allowed" : ""}`}
-          >
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                type="button"
-                className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 ${
-                  remainingTime === 0 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={remainingTime === 0}
-              >
-                <label className="text-2xl font-semibold text-white cursor-pointer">
-                  +
-                </label>
-              </button>
-            </div>
-          </div> */}
-
-
-            
           </div>
 
           <div className="scroll h-80 overflow-y-auto">
@@ -509,7 +490,7 @@ export default function Home() {
                         </div>
 
                         <div className="flex items-center border border-gray-300 rounded-md">
-                          <span className="inline-flex items-center p-2 px-4 text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md">
+                          <span className="inline-flex items-center p-2  text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md">
                             Phút
                           </span>
                           <input
@@ -583,33 +564,20 @@ export default function Home() {
             </div>
           )}
         </div>
-          {/* {remainingTime == 0 && (
-            <div
-              className={`mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white mb-4${
-                !isConfirmed ? " bg-gray-300" : ""
-              }`}
-            >
-              <button
-                className="bg-green-800 text-white hover:bg-green-600 rounded-lg p-1 h-10 w-full"
-                disabled={!isConfirmed}
-              >
-                Gửi báo cáo
-              </button>
-            </div>
-          )} */}
         <div
-          className={` mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white  ${
-            !isConfirmed ? " bg-gray-300" : ""
-          }`}
+        className={`mt-4 p-2 rounded-lg border border-gray-400 border-solid border-1 w-full min-h-fit bg-white ${
+          totalTime === 0 ? "" : "bg-gray-300"
+        }`}
+      >
+        <button
+          className={`${
+            remainingTime === 0 ? "bg-green-500 hover:bg-green-600 cursor-pointer" : "bg-gray-200"
+          } text-white rounded-lg p-1 h-10 w-full`}
+          disabled={totalTime !== 0}
         >
-          <button
-            className="bg-green-800 text-white hover:bg-green-600 rounded-lg p-1 h-10 w-full"
-            disabled={!isConfirmed}
-          >
-            Gửi báo cáo
-          </button>
-        </div>
-
+          Gửi báo cáo
+        </button>
+      </div>
         <div>
           <div>
             {toasts.show && (
@@ -620,6 +588,20 @@ export default function Home() {
               />
             )}
           </div>
+        </div>
+        <div>
+        {/* < {showModal && (
+        <ModalWarning
+          messages="User không tồn tại. Vui lòng kiểm tra mã nhân viên."
+          onClose={closeModal}
+        />
+      )} */}
+       
+          </div>
+          <div>
+        {showModal && (
+            <ModalWarning messages={showMessage} onClose={handlerClose}/>
+          )}
         </div>
       </div>
     </div>

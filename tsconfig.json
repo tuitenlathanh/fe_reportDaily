@@ -21,6 +21,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/mockData/mocData.js", "src/app/component/toastNotifications.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/mockData/mocData.js", "src/app/component/toastComponent.tsx"],
   "exclude": ["node_modules"]
 }

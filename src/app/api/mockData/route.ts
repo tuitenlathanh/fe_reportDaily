@@ -1,9 +1,8 @@
-import { NextApiResponse } from "next";
 import { NextResponse } from "next/server";
 export  async function GET() {
     const mockData = {
       users: [
-        { UserCode: 'SC117', Name: 'Phạm Hoàng Phương Thảo' },
+        { UserCode: 'SC460', Name: 'ĐINH TRỌNG THÀNH' },
         { UserCode: 'SC171', Name: 'Đỗ Tuấn Kiệt' },
         { UserCode: 'SC224', Name: 'Nguyễn Thị Kim Phượng' },
         { UserCode: 'SC242', Name: 'Lê Hùng Cường' },
